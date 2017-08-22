@@ -1,0 +1,28 @@
+table{
+    width: 100%;
+}
+
+table tr{
+    height: 50px;
+}
+
+table td {
+    text-align: center;
+}
+
+td.green {
+    background-color: darkseagreen;
+}
+
+td.blue {
+    background-color: cornflowerblue;
+}
+
+td a {
+    color: black;
+}
+
+td a:hover {
+    cursor: pointer;
+}
+
