@@ -32,7 +32,9 @@ class ReservationController extends Controller
      */
     public function match($matchId)
     {
-        $sectors = Sector::all();
+        $sectors = \Cache::remember('sectors', 60, function() {
+            return Sector::all();
+        });
         $freeInMatch = Place::count() - Reservation::whereMatchId($matchId)->count();
         return view('match', compact('sectors', 'matchId', 'freeInMatch'));
     }
@@ -47,7 +49,9 @@ class ReservationController extends Controller
     public function sector($matchId, Sector $sector)
     {
         $sector->load('rRows.rPlaces');
-        $reserved = Reservation::whereMatchId($matchId)->whereSectorId($sector->id)->get();
+        $reserved = \Cache::remember("reserverd:$matchId:{$sector->id}", 60, function() use($matchId, $sector){
+            return Reservation::whereMatchId($matchId)->whereSectorId($sector->id)->get();
+        });
         $freeInSector= Place::count() - Reservation::whereMatchId($matchId)->whereSectorId($sector->id)->count();
         return view('sector', compact('matchId', 'sector','reserved','freeInSector'));
     }
@@ -76,6 +80,8 @@ class ReservationController extends Controller
             'place_id'     => $place,
             'status'    => Reservation::STATUS_IN_PROCESS
         ]);
+
+        \Cache::forget("reserverd:$matchId:$sector");
         event(new PreReservation($preReservation->getCodeOfPlace(), $preReservation->match_id, $preReservation->sector_id));
         return redirect(route('reservation.detail',[$preReservation->id]));
     }
